@@ -1,0 +1,30 @@
+{
+    "name": "yii2tech/ar-softdelete",
+    "description": "Provides support for ActiveRecord soft delete in Yii2",
+    "keywords": ["yii2", "active", "record", "soft", "delete"],
+    "type": "yii2-extension",
+    "license": "BSD-3-Clause",
+    "support": {
+        "issues": "https://github.com/yii2tech/ar-softdelete/issues",
+        "forum": "http://www.yiiframework.com/forum/",
+        "wiki": "https://github.com/yii2tech/ar-softdelete/wiki",
+        "source": "https://github.com/yii2tech/ar-softdelete"
+    },
+    "authors": [
+        {
+            "name": "Paul Klimov",
+            "email": "klimov.paul@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": { "yii2tech\\ar\\softdelete\\": "" }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}
