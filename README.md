@@ -1,5 +1,5 @@
-ActiveRecord Soft Delete Extension for Yii 2
-============================================
+ActiveRecord Soft Delete Extension for Yii2
+===========================================
 
 This extension provides support for ActiveRecord soft delete.
 
