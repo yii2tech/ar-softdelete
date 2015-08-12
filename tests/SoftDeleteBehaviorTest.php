@@ -31,4 +31,36 @@ class SoftDeleteBehaviorTest extends TestCase
         $this->assertEquals(true, $item->isDeleted);
         $this->assertEquals(2, Item::find()->count());
     }
+
+    /**
+     * @depends testSoftDelete
+     */
+    public function testAllowDelete()
+    {
+        Item::$softDeleteBehaviorConfig = [
+            'replaceRegularDelete' => true
+        ];
+
+        /* @var $item Item|SoftDeleteBehavior */
+        $item = Item::findOne(1);
+        $item->name = 'allow-delete';
+        $item->softDelete();
+
+        $this->assertEquals(1, Item::find()->count());
+    }
+
+    /**
+     * @depends testSoftDelete
+     */
+    public function testRestore()
+    {
+        /* @var $item Item|SoftDeleteBehavior */
+        $item = Item::findOne(2);
+
+        $item->softDelete();
+        $result = $item->restore();
+
+        $this->assertEquals(1, $result);
+        $this->assertEquals(false, $item->isDeleted);
+    }
 }

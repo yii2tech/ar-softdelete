@@ -29,6 +29,9 @@ class Item extends ActiveRecord
                     'softDeleteAttributeValues' => [
                         'isDeleted' => true
                     ],
+                    'allowDeleteCallback' => function ($model) {
+                        return $model->name === 'allow-delete';
+                    },
                 ],
                 static::$softDeleteBehaviorConfig
             ),
