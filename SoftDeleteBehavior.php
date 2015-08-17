@@ -74,6 +74,12 @@ class SoftDeleteBehavior extends Behavior
      * ```php
      * ['statusId' => Item::STATUS_DELETED]
      * ```
+     *
+     * Attribute value can be a callable:
+     *
+     * ```php
+     * ['isDeleted' => function ($model) {return time()}]
+     * ```
      */
     public $softDeleteAttributeValues = [
         'isDeleted' => true
@@ -160,7 +166,14 @@ class SoftDeleteBehavior extends Behavior
     {
         $result = false;
         if ($this->beforeSoftDelete()) {
-            $result = $this->owner->updateAttributes($this->softDeleteAttributeValues);
+            $attributes = [];
+            foreach ($this->softDeleteAttributeValues as $attribute => $value) {
+                if (!is_scalar($value) && is_callable($value)) {
+                    $value = call_user_func($value, $this->owner);
+                }
+                $attributes[$attribute] = $value;
+            }
+            $result = $this->owner->updateAttributes($attributes);
             $this->afterSoftDelete();
         }
         return $result;
@@ -233,6 +246,7 @@ class SoftDeleteBehavior extends Behavior
     protected function restoreInternal()
     {
         $restoreAttributeValues = $this->restoreAttributeValues;
+
         if ($restoreAttributeValues === null) {
             foreach ($this->softDeleteAttributeValues as $name => $value) {
                 if (is_bool($value) || $value === 1 || $value === 0) {
@@ -251,7 +265,16 @@ class SoftDeleteBehavior extends Behavior
                 $restoreAttributeValues[$name] = $restoreValue;
             }
         }
-        return $this->owner->updateAttributes($restoreAttributeValues);
+
+        $attributes = [];
+        foreach ($restoreAttributeValues as $attribute => $value) {
+            if (!is_scalar($value) && is_callable($value)) {
+                $value = call_user_func($value, $this->owner);
+            }
+            $attributes[$attribute] = $value;
+        }
+
+        return $this->owner->updateAttributes($attributes);
     }
 
     /**

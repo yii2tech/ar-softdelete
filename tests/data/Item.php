@@ -9,6 +9,7 @@ use yii2tech\ar\softdelete\SoftDeleteBehavior;
  * @property integer $id
  * @property string $name
  * @property boolean $isDeleted
+ * @property integer $deletedAt
  */
 class Item extends ActiveRecord
 {

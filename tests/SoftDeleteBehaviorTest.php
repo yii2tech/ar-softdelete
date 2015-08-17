@@ -63,4 +63,35 @@ class SoftDeleteBehaviorTest extends TestCase
         $this->assertEquals(1, $result);
         $this->assertEquals(false, $item->isDeleted);
     }
+
+    /**
+     * @depends testRestore
+     */
+    public function testCallback()
+    {
+        Item::$softDeleteBehaviorConfig = [
+            'softDeleteAttributeValues' => [
+                'deletedAt' => function() {
+                    return time();
+                }
+            ],
+            'restoreAttributeValues' => [
+                'deletedAt' => function() {
+                    return null;
+                }
+            ],
+        ];
+
+        /* @var $item Item|SoftDeleteBehavior */
+        $item = Item::findOne(1);
+        $item->softDelete();
+
+        $this->assertTrue($item->deletedAt >= time());
+
+        /* @var $item Item|SoftDeleteBehavior */
+        $item = Item::findOne(1);
+        $item->restore();
+
+        $this->assertNull($item->deletedAt);
+    }
 }
