@@ -7,12 +7,6 @@ use yii2tech\tests\unit\ar\softdelete\data\Item;
 
 class SoftDeleteBehaviorTest extends TestCase
 {
-    protected function setUp()
-    {
-        parent::setUp();
-        Item::$softDeleteBehaviorConfig = [];
-    }
-
     public function testSoftDelete()
     {
         /* @var $item Item|SoftDeleteBehavior */
@@ -26,12 +20,12 @@ class SoftDeleteBehaviorTest extends TestCase
 
     public function testReplaceDelete()
     {
-        Item::$softDeleteBehaviorConfig = [
-            'replaceRegularDelete' => true
-        ];
-
         /* @var $item Item|SoftDeleteBehavior */
+        /* @var $behavior SoftDeleteBehavior */
+
         $item = Item::findOne(2);
+        $behavior = $item->getBehavior('softDelete');
+        $behavior->replaceRegularDelete = true;
         $item->delete();
 
         $this->assertEquals(true, $item->isDeleted);
@@ -43,12 +37,12 @@ class SoftDeleteBehaviorTest extends TestCase
      */
     public function testAllowDelete()
     {
-        Item::$softDeleteBehaviorConfig = [
-            'replaceRegularDelete' => true
-        ];
-
         /* @var $item Item|SoftDeleteBehavior */
+        /* @var $behavior SoftDeleteBehavior */
+
         $item = Item::findOne(1);
+        $behavior = $item->getBehavior('softDelete');
+        $behavior->replaceRegularDelete = true;
         $item->name = 'allow-delete';
         $item->softDelete();
 
@@ -75,27 +69,28 @@ class SoftDeleteBehaviorTest extends TestCase
      */
     public function testCallback()
     {
-        Item::$softDeleteBehaviorConfig = [
-            'softDeleteAttributeValues' => [
-                'deletedAt' => function() {
-                    return time();
-                }
-            ],
-            'restoreAttributeValues' => [
-                'deletedAt' => function() {
-                    return null;
-                }
-            ],
-        ];
-
         /* @var $item Item|SoftDeleteBehavior */
+        /* @var $behavior SoftDeleteBehavior */
+
         $item = Item::findOne(1);
+        $behavior = $item->getBehavior('softDelete');
+        $behavior->softDeleteAttributeValues = [
+            'deletedAt' => function() {
+                return time();
+            }
+        ];
         $item->softDelete();
 
         $this->assertTrue($item->deletedAt >= time());
 
         /* @var $item Item|SoftDeleteBehavior */
         $item = Item::findOne(1);
+        $behavior = $item->getBehavior('softDelete');
+        $behavior->restoreAttributeValues = [
+            'deletedAt' => function() {
+                return null;
+            }
+        ];
         $item->restore();
 
         $this->assertNull($item->deletedAt);

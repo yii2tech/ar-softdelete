@@ -14,10 +14,6 @@ use yii2tech\ar\softdelete\SoftDeleteBehavior;
 class Item extends ActiveRecord
 {
     /**
-     * @var array config for soft delete behavior
-     */
-    public static $softDeleteBehaviorConfig = [];
-    /**
      * @var boolean whether to throw [[onDeleteExceptionClass]] exception on [[delete()]]
      */
     public $throwOnDeleteException = false;
@@ -32,18 +28,15 @@ class Item extends ActiveRecord
     public function behaviors()
     {
         return [
-            'softDelete' => array_merge(
-                [
-                    'class' => SoftDeleteBehavior::className(),
-                    'softDeleteAttributeValues' => [
-                        'isDeleted' => true
-                    ],
-                    'allowDeleteCallback' => function ($model) {
-                        return $model->name === 'allow-delete';
-                    },
+            'softDelete' => [
+                'class' => SoftDeleteBehavior::className(),
+                'softDeleteAttributeValues' => [
+                    'isDeleted' => true
                 ],
-                static::$softDeleteBehaviorConfig
-            ),
+                'allowDeleteCallback' => function ($model) {
+                    return $model->name === 'allow-delete';
+                },
+            ],
         ];
     }
 
