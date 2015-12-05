@@ -181,6 +181,66 @@ $user->softDelete(); // marks record as "deleted"
 is enabled as well.
 
 
+## Handling foreign key constraints <span id="handling-foreign-key-constraints"></span>
+
+In case of usage of the relational database, which supports foreign keys, like MySQL, PostgreSQL etc., "soft" deletion
+is widely used for keeping foreign keys consistence. For example: if user performs a purchase at the online shop, information
+about this purchase should remain in the system for the future bookkeeping. The DDL for such data structure may look like
+following one:
+
+```sql
+CREATE TABLE `Customer`
+(
+   `id` integer NOT NULL AUTO_INCREMENT,
+   `name` varchar(64) NOT NULL,
+   `address` varchar(64) NOT NULL,
+   `phone` varchar(20) NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE InnoDB;
+
+CREATE TABLE `Purchase`
+(
+   `id` integer NOT NULL AUTO_INCREMENT,
+   `customerId` integer NOT NULL,
+   `itemId` integer NOT NULL,
+   `amount` integer NOT NULL,
+    PRIMARY KEY (`id`)
+    FOREIGN KEY (`customerId`) REFERENCES `Customer` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    FOREIGN KEY (`itemId`) REFERENCES `Item` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+) ENGINE InnoDB;
+```
+
+Thus, while set up a foreign key from 'purchase' to 'user', 'ON DELETE RESTRICT' mode is used. So on attempt to delete
+a user record, which have at least one purchase a database error will occur. However, if user record have no external
+reference, it can be deleted.
+
+Usage of [[\yii2tech\ar\softdelete\SoftDeleteBehavior::allowDeleteCallback]] for such use case is not very practical.
+It will require performing extra queries to determine, if external references exist or not, eliminating the benefits of
+the foreign keys database feature.
+
+Method [\yii2tech\ar\softdelete\SoftDeleteBehavior::safeDelete()]] attempts to invoke regular [[\yii\db\BaseActiveRecord::delete()]]
+method, and, if it fails with exception, falls back to [[yii2tech\ar\softdelete\SoftDeleteBehavior::softDelete()]].
+
+```php
+// if there is a foreign key reference :
+$customer = Customer::findOne(15);
+var_dump(count($customer->purchases)); // outputs; "1"
+$customer->safeDelete(); // performs "soft" delete!
+var_dump($customer->isDeleted) // outputs: "true"
+
+// if there is NO foreign key reference :
+$customer = Customer::findOne(53);
+var_dump(count($customer->purchases)); // outputs; "0"
+$customer->safeDelete(); // performs actual delete!
+$customer = Customer::findOne(53);
+var_dump($customer); // outputs: "null"
+```
+
+By default `safeDelete()` method catches [[\yii\db\IntegrityException]] exception, which means soft deleting will be
+performed on foreign constraint violation DB exception. You may specify another exception class here to customize fallback
+error level. For example: usage of [[\Exception]] will cause soft-delete fallback on any error during regular deleting.
+
+
 ## Record restoration <span id="record-restoration"></span>
 
 At some point you may want to "restore" records, which have been marked as "deleted" in the past.

@@ -17,6 +17,14 @@ class Item extends ActiveRecord
      * @var array config for soft delete behavior
      */
     public static $softDeleteBehaviorConfig = [];
+    /**
+     * @var boolean whether to throw [[onDeleteExceptionClass]] exception on [[delete()]]
+     */
+    public $throwOnDeleteException = false;
+    /**
+     * @var string class name of the exception to be thrown on delete.
+     */
+    public $onDeleteExceptionClass = 'yii\db\IntegrityException';
 
     /**
      * @inheritdoc
@@ -24,7 +32,7 @@ class Item extends ActiveRecord
     public function behaviors()
     {
         return [
-            'softDeleteBehavior' => array_merge(
+            'softDelete' => array_merge(
                 [
                     'class' => SoftDeleteBehavior::className(),
                     'softDeleteAttributeValues' => [
@@ -55,5 +63,18 @@ class Item extends ActiveRecord
         return [
             ['name', 'required'],
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function beforeDelete()
+    {
+        if ($this->throwOnDeleteException) {
+            $className = $this->onDeleteExceptionClass;
+            $exception = new $className('Emulation');
+            throw $exception;
+        }
+        return parent::beforeDelete();
     }
 }

@@ -106,6 +106,15 @@ class SoftDeleteBehavior extends Behavior
      * ```
      */
     public $allowDeleteCallback;
+    /**
+     * @var string class name of the exception, which should trigger a fallback to [[softDelete()]] method from [[safeDelete()]].
+     * By default [[\yii\db\IntegrityException]] is used, which means soft deleting will be performed on foreign constraint
+     * violation DB exception.
+     * You may specify another exception class here to customize fallback error level. For example: usage of [[\Exception]]
+     * will cause soft-delete fallback on any error during regular deleting.
+     * @see safeDelete()
+     */
+    public $deleteFallbackException = 'yii\db\IntegrityException';
 
     /**
      * @var boolean whether to perform soft delete instead of regular delete.
@@ -308,6 +317,51 @@ class SoftDeleteBehavior extends Behavior
             $this->owner->afterRestore();
         }
         $this->owner->trigger(self::EVENT_AFTER_RESTORE);
+    }
+
+    /**
+     * Attempts to perform regular [[BaseActiveRecord::delete()]], if it fails with exception, falls back to [[softDelete()]].
+     * If owner database supports transactions, regular deleting attempt will be enclosed in transaction with rollback
+     * in case of failure.
+     * @return false|integer number of affected rows.
+     * @throws \Exception on failure.
+     */
+    public function safeDelete()
+    {
+        try {
+            $transaction = $this->beginTransaction();
+
+            $result = $this->owner->delete();
+            if (isset($transaction)) {
+                $transaction->commit();
+            }
+        } catch (\Exception $exception) {
+            if (isset($transaction)) {
+                $transaction->rollback();
+            }
+
+            $fallbackExceptionClass = $this->deleteFallbackException;
+            if ($exception instanceof $fallbackExceptionClass) {
+                $result = $this->softDeleteInternal();
+            } else {
+                throw $exception;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Begins new database transaction if owner allows it.
+     * @return \yii\db\Transaction|null transaction instance or `null` if not available.
+     */
+    private function beginTransaction()
+    {
+        $db = $this->owner->getDb();
+        if ($db->hasMethod('beginTransaction')) {
+            return $db->beginTransaction();
+        }
+        return null;
     }
 
     // Events :
