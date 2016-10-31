@@ -2,6 +2,7 @@
 
 namespace yii2tech\tests\unit\ar\softdelete;
 
+use yii\base\ModelEvent;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 use yii2tech\tests\unit\ar\softdelete\data\Item;
 
@@ -142,5 +143,44 @@ class SoftDeleteBehaviorTest extends TestCase
             $this->assertEquals('yii\db\IntegrityException', get_class($exception));
             $this->assertEquals(false, $item->isDeleted);
         }
+    }
+
+    /**
+     * @depends testSoftDelete
+     */
+    public function testBeforeSoftDelete()
+    {
+        /* @var $item Item|SoftDeleteBehavior */
+        $item = Item::findOne(1);
+
+        $item->on(SoftDeleteBehavior::EVENT_BEFORE_SOFT_DELETE, function (ModelEvent $event) {
+            $item = $event->sender;
+            $item->deletedAt = 100;
+        });
+
+        $item->softDelete();
+
+        $item = Item::findOne(1);
+        $this->assertEquals(100, $item->deletedAt);
+    }
+
+    /**
+     * @depends testRestore
+     */
+    public function testBeforeRestore()
+    {
+        /* @var $item Item|SoftDeleteBehavior */
+        $item = Item::findOne(1);
+        $item->softDelete();
+
+        $item = Item::findOne(1);
+        $item->on(SoftDeleteBehavior::EVENT_BEFORE_RESTORE, function (ModelEvent $event) {
+            $item = $event->sender;
+            $item->deletedAt = 200;
+        });
+        $item->restore();
+
+        $item = Item::findOne(1);
+        $this->assertEquals(200, $item->deletedAt);
     }
 }

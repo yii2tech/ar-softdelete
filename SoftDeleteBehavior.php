@@ -175,7 +175,7 @@ class SoftDeleteBehavior extends Behavior
     {
         $result = false;
         if ($this->beforeSoftDelete()) {
-            $attributes = [];
+            $attributes = $this->owner->getDirtyAttributes();
             foreach ($this->softDeleteAttributeValues as $attribute => $value) {
                 if (!is_scalar($value) && is_callable($value)) {
                     $value = call_user_func($value, $this->owner);
@@ -275,7 +275,7 @@ class SoftDeleteBehavior extends Behavior
             }
         }
 
-        $attributes = [];
+        $attributes = $this->owner->getDirtyAttributes();
         foreach ($restoreAttributeValues as $attribute => $value) {
             if (!is_scalar($value) && is_callable($value)) {
                 $value = call_user_func($value, $this->owner);
@@ -375,9 +375,8 @@ class SoftDeleteBehavior extends Behavior
             return [
                 BaseActiveRecord::EVENT_BEFORE_DELETE => 'beforeDelete',
             ];
-        } else {
-            return [];
         }
+        return [];
     }
 
     /**
