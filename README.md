@@ -78,7 +78,7 @@ var_dump($item); // outputs "null"
 
 However you may want to mutate regular ActiveRecord `delete()` method in the way in performs "soft" deleting instead
 of actual removing of the record. It is a common solution in such cases as applying "soft" delete functionality for
-existing code. For such functionality you should enable [[\yii2tech\ar\softdelete\SoftDeleteBehavior::replaceRegularDelete]]
+existing code. For such functionality you should enable [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$replaceRegularDelete]]
 option in behavior configuration:
 
 ```php
@@ -149,7 +149,7 @@ through users list and found accounts, which has been registered long ago, but d
 system, these records have no value for the history and can be removed from database to save disk space.
 
 You can make "soft" deletion to be "smart" and detect, if the record can be removed from database or only marked as "deleted".
-This can be done via [[\yii2tech\ar\softdelete\SoftDeleteBehavior::allowDeleteCallback]]. For example:
+This can be done via [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$allowDeleteCallback]]. For example:
 
 ```php
 class User extends ActiveRecord
@@ -177,7 +177,7 @@ $user = User::find()->where(['not' =>['lastLoginDate' => null]])->limit(1)->one(
 $user->softDelete(); // marks record as "deleted"
 ```
 
-[[\yii2tech\ar\softdelete\SoftDeleteBehavior::allowDeleteCallback]] logic is applied in case [[\yii2tech\ar\softdelete\SoftDeleteBehavior::replaceRegularDelete]]
+[[\yii2tech\ar\softdelete\SoftDeleteBehavior::$allowDeleteCallback]] logic is applied in case [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$replaceRegularDelete]]
 is enabled as well.
 
 
@@ -214,7 +214,7 @@ Thus, while set up a foreign key from 'purchase' to 'user', 'ON DELETE RESTRICT'
 a user record, which have at least one purchase a database error will occur. However, if user record have no external
 reference, it can be deleted.
 
-Usage of [[\yii2tech\ar\softdelete\SoftDeleteBehavior::allowDeleteCallback]] for such use case is not very practical.
+Usage of [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$allowDeleteCallback]] for such use case is not very practical.
 It will require performing extra queries to determine, if external references exist or not, eliminating the benefits of
 the foreign keys database feature.
 
@@ -256,8 +256,8 @@ $item->restore(); // restore record
 var_dump($item->isDeleted); // outputs "false"
 ```
 
-By default attribute values, which should be applied for record restoration are automatically detected from [[\yii2tech\ar\softdelete\SoftDeleteBehavior::softDeleteAttributeValues]],
-however it is better you specify them explicitly via [[\yii2tech\ar\softdelete\SoftDeleteBehavior::restoreAttributeValues]].
+By default attribute values, which should be applied for record restoration are automatically detected from [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$softDeleteAttributeValues]],
+however it is better you specify them explicitly via [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$restoreAttributeValues]].
 
 
 ## Events <span id="events"></span>

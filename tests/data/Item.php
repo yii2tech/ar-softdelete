@@ -6,21 +6,22 @@ use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 
 /**
- * @property integer $id
+ * @property int $id
  * @property string $name
- * @property boolean $isDeleted
- * @property integer $deletedAt
+ * @property bool $isDeleted
+ * @property int $deletedAt
  */
 class Item extends ActiveRecord
 {
     /**
-     * @var boolean whether to throw [[onDeleteExceptionClass]] exception on [[delete()]]
+     * @var bool whether to throw [[onDeleteExceptionClass]] exception on [[delete()]]
      */
     public $throwOnDeleteException = false;
     /**
      * @var string class name of the exception to be thrown on delete.
      */
     public $onDeleteExceptionClass = 'yii\db\IntegrityException';
+
 
     /**
      * @inheritdoc

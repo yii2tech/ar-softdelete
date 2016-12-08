@@ -34,7 +34,7 @@ use yii\db\BaseActiveRecord;
  * ```
  *
  * @property BaseActiveRecord $owner owner ActiveRecord instance.
- * @property boolean $replaceRegularDelete whether to perform soft delete instead of regular delete.
+ * @property bool $replaceRegularDelete whether to perform soft delete instead of regular delete.
  * If enabled [[BaseActiveRecord::delete()]] will perform soft deletion instead of actual record deleting.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
@@ -90,13 +90,13 @@ class SoftDeleteBehavior extends Behavior
      */
     public $restoreAttributeValues;
     /**
-     * @var boolean whether to invoke owner [[BaseActiveRecord::beforeDelete()]] and [[BaseActiveRecord::afterDelete()]]
+     * @var bool whether to invoke owner [[BaseActiveRecord::beforeDelete()]] and [[BaseActiveRecord::afterDelete()]]
      * while performing soft delete. This option affects only [[softDelete()]] method.
      */
     public $invokeDeleteEvents = true;
     /**
      * @var callable|null callback, which execution determines if record should be "hard" deleted instead of being marked
-     * as deleted. Callback should match following signature: `boolean function(BaseActiveRecord $model)`
+     * as deleted. Callback should match following signature: `bool function(BaseActiveRecord $model)`
      * For example:
      *
      * ```php
@@ -117,14 +117,14 @@ class SoftDeleteBehavior extends Behavior
     public $deleteFallbackException = 'yii\db\IntegrityException';
 
     /**
-     * @var boolean whether to perform soft delete instead of regular delete.
+     * @var bool whether to perform soft delete instead of regular delete.
      * If enabled [[BaseActiveRecord::delete()]] will perform soft deletion instead of actual record deleting.
      */
     private $_replaceRegularDelete = false;
 
 
     /**
-     * @return boolean
+     * @return bool whether to perform soft delete instead of regular delete.
      */
     public function getReplaceRegularDelete()
     {
@@ -132,7 +132,7 @@ class SoftDeleteBehavior extends Behavior
     }
 
     /**
-     * @param boolean $replaceRegularDelete
+     * @param bool $replaceRegularDelete whether to perform soft delete instead of regular delete.
      */
     public function setReplaceRegularDelete($replaceRegularDelete)
     {
@@ -146,7 +146,7 @@ class SoftDeleteBehavior extends Behavior
 
     /**
      * Marks the owner as deleted.
-     * @return integer|false the number of rows marked as deleted, or false if the soft deletion is unsuccessful for some reason.
+     * @return int|false the number of rows marked as deleted, or false if the soft deletion is unsuccessful for some reason.
      * Note that it is possible the number of rows deleted is 0, even though the soft deletion execution is successful.
      */
     public function softDelete()
@@ -169,7 +169,7 @@ class SoftDeleteBehavior extends Behavior
 
     /**
      * Marks the owner as deleted.
-     * @return integer|false the number of rows marked as deleted, or false if the soft deletion is unsuccessful for some reason.
+     * @return int|false the number of rows marked as deleted, or false if the soft deletion is unsuccessful for some reason.
      */
     protected function softDeleteInternal()
     {
@@ -191,7 +191,7 @@ class SoftDeleteBehavior extends Behavior
     /**
      * This method is invoked before soft deleting a record.
      * The default implementation raises the [[EVENT_BEFORE_SOFT_DELETE]] event.
-     * @return boolean whether the record should be deleted. Defaults to true.
+     * @return bool whether the record should be deleted. Defaults to true.
      */
     public function beforeSoftDelete()
     {
@@ -222,7 +222,7 @@ class SoftDeleteBehavior extends Behavior
     }
 
     /**
-     * @return boolean whether owner "hard" deletion allowed or not.
+     * @return bool whether owner "hard" deletion allowed or not.
      */
     protected function isDeleteAllowed()
     {
@@ -236,7 +236,7 @@ class SoftDeleteBehavior extends Behavior
 
     /**
      * Restores record from "deleted" state, after it has been "soft" deleted.
-     * @return integer|false the number of restored rows, or false if the restoration is unsuccessful for some reason.
+     * @return int|false the number of restored rows, or false if the restoration is unsuccessful for some reason.
      */
     public function restore()
     {
@@ -249,7 +249,8 @@ class SoftDeleteBehavior extends Behavior
     }
 
     /**
-     * @return integer the number of restored rows.
+     * Performs restoration for soft-deleted record.
+     * @return int the number of restored rows.
      * @throws InvalidConfigException on invalid configuration.
      */
     protected function restoreInternal()
@@ -269,7 +270,7 @@ class SoftDeleteBehavior extends Behavior
                         $restoreValue = $value + 1;
                     }
                 } else {
-                    throw new InvalidConfigException('Unable to automatically determine restore attribute values, "' . get_class($this) . '::restoreAttributeValues" should be explicitly set.');
+                    throw new InvalidConfigException('Unable to automatically determine restore attribute values, "' . get_class($this) . '::$restoreAttributeValues" should be explicitly set.');
                 }
                 $restoreAttributeValues[$name] = $restoreValue;
             }
@@ -289,7 +290,7 @@ class SoftDeleteBehavior extends Behavior
     /**
      * This method is invoked before record is restored from "deleted" state.
      * The default implementation raises the [[EVENT_BEFORE_RESTORE]] event.
-     * @return boolean whether the record should be restored. Defaults to true.
+     * @return bool whether the record should be restored. Defaults to `true`.
      */
     public function beforeRestore()
     {
@@ -323,7 +324,7 @@ class SoftDeleteBehavior extends Behavior
      * Attempts to perform regular [[BaseActiveRecord::delete()]], if it fails with exception, falls back to [[softDelete()]].
      * If owner database supports transactions, regular deleting attempt will be enclosed in transaction with rollback
      * in case of failure.
-     * @return false|integer number of affected rows.
+     * @return false|int number of affected rows.
      * @throws \Exception on failure.
      */
     public function safeDelete()

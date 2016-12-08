@@ -1,7 +1,7 @@
 {
     "name": "yii2tech/ar-softdelete",
     "description": "Provides support for ActiveRecord soft delete in Yii2",
-    "keywords": ["yii2", "active", "record", "soft", "smart", "delete"],
+    "keywords": ["yii2", "active", "record", "soft", "smart", "delete", "integrity"],
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
     "support": {
