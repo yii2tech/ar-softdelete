@@ -25,7 +25,7 @@ use yii\db\BaseActiveRecord;
  *             'softDeleteBehavior' => [
  *                 'class' => SoftDeleteBehavior::className(),
  *                 'softDeleteAttributeValues' => [
- *                     'isDeleted' => true
+ *                     'is_deleted' => true
  *                 ],
  *             ],
  *         ];
@@ -66,23 +66,23 @@ class SoftDeleteBehavior extends Behavior
      * Those may raise a flag:
      *
      * ```php
-     * ['isDeleted' => true]
+     * ['is_deleted' => true]
      * ```
      *
      * or switch status:
      *
      * ```php
-     * ['statusId' => Item::STATUS_DELETED]
+     * ['status_id' => Item::STATUS_DELETED]
      * ```
      *
      * Attribute value can be a callable:
      *
      * ```php
-     * ['isDeleted' => function ($model) {return time()}]
+     * ['is_deleted' => function ($model) {return time()}]
      * ```
      */
     public $softDeleteAttributeValues = [
-        'isDeleted' => true
+        'is_deleted' => true
     ];
     /**
      * @var array|null  values of the owner attributes, which should be applied on restoration from "deleted" state,
@@ -322,7 +322,7 @@ class SoftDeleteBehavior extends Behavior
 
     /**
      * Attempts to perform regular [[BaseActiveRecord::delete()]], if it fails with exception, falls back to [[softDelete()]].
-     * If owner database supports transactions, regular deleting attempt will be enclosed in transaction with rollback
+     * If owner database supports transactions, regular deleting attempt will be enclosed in transaction with rollBack
      * in case of failure.
      * @return false|int number of affected rows.
      * @throws \Exception on failure.
@@ -338,7 +338,7 @@ class SoftDeleteBehavior extends Behavior
             }
         } catch (\Exception $exception) {
             if (isset($transaction)) {
-                $transaction->rollback();
+                $transaction->rollBack();
             }
 
             $fallbackExceptionClass = $this->deleteFallbackException;
