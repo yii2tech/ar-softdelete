@@ -1,5 +1,10 @@
-ActiveRecord Soft Delete Extension for Yii2
-===========================================
+<p align="center">
+    <a href="https://github.com/yii2tech" target="_blank">
+        <img src="https://avatars2.githubusercontent.com/u/12951949" height="100px">
+    </a>
+    <h1 align="center">ActiveRecord Soft Delete Extension for Yii2</h1>
+    <br>
+</p>
 
 This extension provides support for ActiveRecord soft delete.
 
@@ -108,6 +113,36 @@ $item->delete(); // no record removal, mark record as "deleted" instead
 
 $item = Item::findOne($id);
 var_dump($item->isDeleted); // outputs "true"
+```
+
+**Heads up!** In case you mutate regular ActiveRecord `delete()` method, it will be unable to function with ActiveRecord
+transactions feature, e.g. scenarios with [[\yii\db\ActiveRecord::OP_DELETE]] or [[\yii\db\ActiveRecord::OP_ALL]]
+transaction levels:
+
+```php
+class Item extends ActiveRecord
+{
+    public function behaviors()
+    {
+        return [
+            'softDeleteBehavior' => [
+                'class' => SoftDeleteBehavior::className(),
+                'replaceRegularDelete' => true // mutate native `delete()` method
+            ],
+        ];
+    }
+
+    public function transactions()
+    {
+        return [
+            'some' => self::OP_DELETE,
+        ];
+    }
+}
+
+$item = Item::findOne($id);
+$item->setScenario('some');
+$item->delete(); // nothing happens!
 ```
 
 > Tip: you may apply a condition, which filters "not deleted" records, to the ActiveQuery as default scope, overriding
