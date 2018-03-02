@@ -29,8 +29,8 @@ class Item extends ActiveRecord
     public function behaviors()
     {
         return [
-            'softDelete' => [
-                'class' => SoftDeleteBehavior::className(),
+            'soft-delete' => [
+                '__class' => SoftDeleteBehavior::class,
                 'softDeleteAttributeValues' => [
                     'isDeleted' => true
                 ],

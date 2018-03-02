@@ -22,8 +22,8 @@ use yii\db\BaseActiveRecord;
  *     public function behaviors()
  *     {
  *         return [
- *             'softDeleteBehavior' => [
- *                 'class' => SoftDeleteBehavior::className(),
+ *             'soft-delete' => [
+ *                 '__class' => SoftDeleteBehavior::class,
  *                 'softDeleteAttributeValues' => [
  *                     'isDeleted' => true
  *                 ],

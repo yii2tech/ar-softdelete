@@ -25,7 +25,7 @@ class SoftDeleteBehaviorTest extends TestCase
         /* @var $behavior SoftDeleteBehavior */
 
         $item = Item::findOne(2);
-        $behavior = $item->getBehavior('softDelete');
+        $behavior = $item->getBehavior('soft-delete');
         $behavior->replaceRegularDelete = true;
         $item->delete();
 
@@ -42,7 +42,7 @@ class SoftDeleteBehaviorTest extends TestCase
         /* @var $behavior SoftDeleteBehavior */
 
         $item = Item::findOne(1);
-        $behavior = $item->getBehavior('softDelete');
+        $behavior = $item->getBehavior('soft-delete');
         $behavior->replaceRegularDelete = true;
         $item->name = 'allow-delete';
         $item->softDelete();
@@ -74,7 +74,7 @@ class SoftDeleteBehaviorTest extends TestCase
         /* @var $behavior SoftDeleteBehavior */
 
         $item = Item::findOne(1);
-        $behavior = $item->getBehavior('softDelete');
+        $behavior = $item->getBehavior('soft-delete');
         $behavior->softDeleteAttributeValues = [
             'deletedAt' => function() {
                 return time();
@@ -86,7 +86,7 @@ class SoftDeleteBehaviorTest extends TestCase
 
         /* @var $item Item|SoftDeleteBehavior */
         $item = Item::findOne(1);
-        $behavior = $item->getBehavior('softDelete');
+        $behavior = $item->getBehavior('soft-delete');
         $behavior->restoreAttributeValues = [
             'deletedAt' => function() {
                 return null;
@@ -126,7 +126,7 @@ class SoftDeleteBehaviorTest extends TestCase
         $item = Item::findOne(2);
         $item->throwOnDeleteException = true;
         $item->onDeleteExceptionClass = 'yii\base\InvalidValueException';
-        $behavior = $item->getBehavior('softDelete');
+        $behavior = $item->getBehavior('soft-delete');
         $behavior->deleteFallbackException = $item->onDeleteExceptionClass;
 
         $item->safeDelete();

@@ -50,8 +50,8 @@ class Item extends ActiveRecord
     public function behaviors()
     {
         return [
-            'softDeleteBehavior' => [
-                'class' => SoftDeleteBehavior::className(),
+            'soft-delete' => [
+                '__class' => SoftDeleteBehavior::class,
                 'softDeleteAttributeValues' => [
                     'isDeleted' => true
                 ],
@@ -92,8 +92,8 @@ class Item extends ActiveRecord
     public function behaviors()
     {
         return [
-            'softDeleteBehavior' => [
-                'class' => SoftDeleteBehavior::className(),
+            'soft-delete' => [
+                '__class' => SoftDeleteBehavior::class,
                 'softDeleteAttributeValues' => [
                     'isDeleted' => true
                 ],
@@ -125,8 +125,8 @@ class Item extends ActiveRecord
     public function behaviors()
     {
         return [
-            'softDeleteBehavior' => [
-                'class' => SoftDeleteBehavior::className(),
+            'soft-delete' => [
+                '__class' => SoftDeleteBehavior::class,
                 'replaceRegularDelete' => true // mutate native `delete()` method
             ],
         ];
@@ -154,8 +154,8 @@ class Item extends ActiveRecord
     public function behaviors()
     {
         return [
-            'softDeleteBehavior' => [
-                'class' => SoftDeleteBehavior::className(),
+            'soft-delete' => [
+                '__class' => SoftDeleteBehavior::class,
                 'softDeleteAttributeValues' => [
                     'isDeleted' => true
                 ],
@@ -192,8 +192,8 @@ class User extends ActiveRecord
     public function behaviors()
     {
         return [
-            'softDeleteBehavior' => [
-                'class' => SoftDeleteBehavior::className(),
+            'soft-delete' => [
+                '__class' => SoftDeleteBehavior::class,
                 'softDeleteAttributeValues' => [
                     'isDeleted' => true
                 ],
@@ -301,6 +301,7 @@ By default [[\yii2tech\ar\softdelete\SoftDeleteBehavior::softDelete()]] triggers
 and [[\yii\db\BaseActiveRecord::EVENT_AFTER_DELETE]] events in the same way they are triggered at regular `delete()`.
 
 Also [[\yii2tech\ar\softdelete\SoftDeleteBehavior]] triggers several additional events in the scope of the owner ActiveRecord:
+
  - [[\yii2tech\ar\softdelete\SoftDeleteBehavior::EVENT_BEFORE_SOFT_DELETE]] - triggered before "soft" delete is made.
  - [[\yii2tech\ar\softdelete\SoftDeleteBehavior::EVENT_AFTER_SOFT_DELETE]] - triggered after "soft" delete is made.
  - [[\yii2tech\ar\softdelete\SoftDeleteBehavior::EVENT_BEFORE_RESTORE]] - triggered before record is restored from "deleted" state.
@@ -323,8 +324,8 @@ class Item extends ActiveRecord
     public function behaviors()
     {
         return [
-            'softDeleteBehavior' => [
-                'class' => SoftDeleteBehavior::className(),
+            'soft-delete' => [
+                '__class' => SoftDeleteBehavior::class,
                 // ...
             ],
         ];
