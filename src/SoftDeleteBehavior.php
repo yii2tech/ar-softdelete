@@ -11,6 +11,7 @@ use yii\base\Behavior;
 use yii\base\InvalidConfigException;
 use yii\base\ModelEvent;
 use yii\db\BaseActiveRecord;
+use yii\db\ActiveRecord;
 
 /**
  * SoftDeleteBehavior provides support for "soft" delete of ActiveRecord models as well as restoring them
@@ -159,7 +160,25 @@ class SoftDeleteBehavior extends Behavior
             return false;
         }
 
-        $result = $this->softDeleteInternal();
+        if ($this->owner->isTransactional(ActiveRecord::OP_DELETE)) {
+            $transaction = $this->owner->getDb()->beginTransaction();
+            try {
+                $result = $this->softDeleteInternal();
+                if ($result === false) {
+                    $transaction->rollBack();
+                } else {
+                    $transaction->commit();
+                }
+            } catch (\Exception $e) {
+                $transaction->rollBack();
+                throw $e;
+            } catch (\Throwable $e) {
+                $transaction->rollBack();
+                throw $e;
+            }
+        } else {
+            $result = $this->softDeleteInternal();
+        }
 
         if ($this->invokeDeleteEvents) {
             $this->owner->afterDelete();
