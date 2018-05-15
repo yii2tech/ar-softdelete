@@ -86,7 +86,7 @@ class SoftDeleteBehavior extends Behavior
     ];
     /**
      * @var array|null  values of the owner attributes, which should be applied on restoration from "deleted" state,
-     * in format: [attributeName => attributeValue]. If not set value will be automatically detected from [[softDeleteAttributeValues]].
+     * in format: `[attributeName => attributeValue]`. If not set value will be automatically detected from [[softDeleteAttributeValues]].
      */
     public $restoreAttributeValues;
     /**
@@ -325,7 +325,7 @@ class SoftDeleteBehavior extends Behavior
      * If owner database supports transactions, regular deleting attempt will be enclosed in transaction with rollback
      * in case of failure.
      * @return false|int number of affected rows.
-     * @throws \Exception on failure.
+     * @throws \Throwable on failure.
      */
     public function safeDelete()
     {
@@ -336,20 +336,24 @@ class SoftDeleteBehavior extends Behavior
             if (isset($transaction)) {
                 $transaction->commit();
             }
-        } catch (\Exception $exception) {
-            if (isset($transaction)) {
-                $transaction->rollback();
-            }
 
-            $fallbackExceptionClass = $this->deleteFallbackException;
-            if ($exception instanceof $fallbackExceptionClass) {
-                $result = $this->softDeleteInternal();
-            } else {
-                throw $exception;
-            }
+            return $result;
+        } catch (\Exception $exception) {
+            // PHP < 7.0
+        } catch (\Throwable $exception) {
+            // PHP >= 7.0
         }
 
-        return $result;
+        if (isset($transaction)) {
+            $transaction->rollback();
+        }
+
+        $fallbackExceptionClass = $this->deleteFallbackException;
+        if ($exception instanceof $fallbackExceptionClass) {
+            return $this->softDeleteInternal();
+        }
+
+        throw $exception;
     }
 
     /**
