@@ -10,6 +10,7 @@ namespace yii2tech\ar\softdelete;
 use yii\base\Behavior;
 use yii\base\InvalidConfigException;
 use yii\base\ModelEvent;
+use yii\db\ActiveRecord;
 use yii\db\BaseActiveRecord;
 
 /**
@@ -148,6 +149,7 @@ class SoftDeleteBehavior extends Behavior
      * Marks the owner as deleted.
      * @return int|false the number of rows marked as deleted, or false if the soft deletion is unsuccessful for some reason.
      * Note that it is possible the number of rows deleted is 0, even though the soft deletion execution is successful.
+     * @throws \Throwable in case soft delete failed in transactional mode.
      */
     public function softDelete()
     {
@@ -155,16 +157,41 @@ class SoftDeleteBehavior extends Behavior
             return $this->owner->delete();
         }
 
-        if ($this->invokeDeleteEvents && !$this->owner->beforeDelete()) {
-            return false;
+        $softDeleteCallback = function () {
+            if ($this->invokeDeleteEvents && !$this->owner->beforeDelete()) {
+                return false;
+            }
+
+            $result = $this->softDeleteInternal();
+
+            if ($this->invokeDeleteEvents) {
+                $this->owner->afterDelete();
+            }
+
+            return $result;
+        };
+
+        if (!$this->isTransactional(ActiveRecord::OP_DELETE) && !$this->isTransactional(ActiveRecord::OP_UPDATE)) {
+            return call_user_func($softDeleteCallback);
         }
 
-        $result = $this->softDeleteInternal();
-
-        if ($this->invokeDeleteEvents) {
-            $this->owner->afterDelete();
+        $transaction = $this->beginTransaction();
+        try {
+            $result = call_user_func($softDeleteCallback);
+            if ($result === false) {
+                $transaction->rollBack();
+            } else {
+                $transaction->commit();
+            }
+            return $result;
+        } catch (\Exception $exception) {
+            // PHP < 7.0
+        } catch (\Throwable $exception) {
+            // PHP >= 7.0
         }
-        return $result;
+
+        $transaction->rollBack();
+        throw $exception;
     }
 
     /**
@@ -185,6 +212,7 @@ class SoftDeleteBehavior extends Behavior
             $result = $this->owner->updateAttributes($attributes);
             $this->afterSoftDelete();
         }
+
         return $result;
     }
 
@@ -237,15 +265,40 @@ class SoftDeleteBehavior extends Behavior
     /**
      * Restores record from "deleted" state, after it has been "soft" deleted.
      * @return int|false the number of restored rows, or false if the restoration is unsuccessful for some reason.
+     * @throws \Throwable in case restore failed in transactional mode.
      */
     public function restore()
     {
-        $result = false;
-        if ($this->beforeRestore()) {
-            $result = $this->restoreInternal();
-            $this->afterRestore();
+        $restoreCallback = function () {
+            $result = false;
+            if ($this->beforeRestore()) {
+                $result = $this->restoreInternal();
+                $this->afterRestore();
+            }
+            return $result;
+        };
+
+        if (!$this->isTransactional(ActiveRecord::OP_UPDATE)) {
+            return call_user_func($restoreCallback);
         }
-        return $result;
+
+        $transaction = $this->beginTransaction();
+        try {
+            $result = call_user_func($restoreCallback);
+            if ($result === false) {
+                $transaction->rollBack();
+            } else {
+                $transaction->commit();
+            }
+            return $result;
+        } catch (\Exception $exception) {
+            // PHP < 7.0
+        } catch (\Throwable $exception) {
+            // PHP >= 7.0
+        }
+
+        $transaction->rollBack();
+        throw $exception;
     }
 
     /**
@@ -259,7 +312,7 @@ class SoftDeleteBehavior extends Behavior
 
         if ($restoreAttributeValues === null) {
             foreach ($this->softDeleteAttributeValues as $name => $value) {
-                if (is_bool($value) || $value === 1 || $value === 0) {
+                if (is_bool($value)) {
                     $restoreValue = !$value;
                 } elseif (is_int($value)) {
                     if ($value === 1) {
@@ -269,6 +322,8 @@ class SoftDeleteBehavior extends Behavior
                     } else {
                         $restoreValue = $value + 1;
                     }
+                } elseif (!is_scalar($value) && is_callable($value)) {
+                    $restoreValue = null;
                 } else {
                     throw new InvalidConfigException('Unable to automatically determine restore attribute values, "' . get_class($this) . '::$restoreAttributeValues" should be explicitly set.');
                 }
@@ -354,6 +409,19 @@ class SoftDeleteBehavior extends Behavior
         }
 
         throw $exception;
+    }
+
+    /**
+     * Returns a value indicating whether the specified operation is transactional in the current owner scenario.
+     * @return bool whether the specified operation is transactional in the current owner scenario.
+     */
+    private function isTransactional($operation)
+    {
+        if (!$this->owner->hasMethod('isTransactional')) {
+            return false;
+        }
+
+        return $this->owner->isTransactional($operation);
     }
 
     /**

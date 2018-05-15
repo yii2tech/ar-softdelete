@@ -5,6 +5,7 @@ Yii 2 ActiveRecord Soft Delete extension Change Log
 -----------------------
 
 - Bug: Fixed `safeDelete()` method does not catch `\Throwable` (klimov-paul)
+- Enh #15: Methods `softDelete()` and `restore()` now supports transactional operations (tunecino, klimov-paul)
 
 
 1.0.1, December 8, 2016
