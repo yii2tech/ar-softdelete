@@ -5,6 +5,7 @@ namespace yii2tech\tests\unit\ar\softdelete;
 use yii\base\ModelEvent;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 use yii2tech\tests\unit\ar\softdelete\data\Item;
+use yii2tech\tests\unit\ar\softdelete\data\VersionedItem;
 
 class SoftDeleteBehaviorTest extends TestCase
 {
@@ -182,5 +183,31 @@ class SoftDeleteBehaviorTest extends TestCase
 
         $item = Item::findOne(1);
         $this->assertEquals(200, $item->deletedAt);
+    }
+
+    /**
+     * @depends testRestore
+     */
+    public function testOptimisticLock()
+    {
+        /* @var $item VersionedItem|SoftDeleteBehavior */
+
+        $item = new VersionedItem();
+        $item->name = 'optimistic lock';
+        $item->version = 1;
+        $item->save(false);
+
+        $item = VersionedItem::findOne($item->id);
+        $this->assertTrue($item->softDelete() > 0);
+        $this->assertEquals(2, $item->version);
+
+        $item = VersionedItem::findOne($item->id);
+        $this->assertTrue($item->restore() > 0);
+        $this->assertEquals(3, $item->version);
+
+        $item = VersionedItem::findOne($item->id);
+        $item->version = 0;
+        $this->expectException('yii\db\StaleObjectException');
+        $item->softDelete();
     }
 }

@@ -12,6 +12,7 @@ use yii\base\InvalidConfigException;
 use yii\base\ModelEvent;
 use yii\db\ActiveRecord;
 use yii\db\BaseActiveRecord;
+use yii\db\StaleObjectException;
 
 /**
  * SoftDeleteBehavior provides support for "soft" delete of ActiveRecord models as well as restoring them
@@ -149,6 +150,7 @@ class SoftDeleteBehavior extends Behavior
      * Marks the owner as deleted.
      * @return int|false the number of rows marked as deleted, or false if the soft deletion is unsuccessful for some reason.
      * Note that it is possible the number of rows deleted is 0, even though the soft deletion execution is successful.
+     * @throws StaleObjectException if optimistic locking is enabled and the data being updated is outdated.
      * @throws \Throwable in case soft delete failed in transactional mode.
      */
     public function softDelete()
@@ -197,6 +199,7 @@ class SoftDeleteBehavior extends Behavior
     /**
      * Marks the owner as deleted.
      * @return int|false the number of rows marked as deleted, or false if the soft deletion is unsuccessful for some reason.
+     * @throws StaleObjectException if optimistic locking is enabled and the data being updated is outdated.
      */
     protected function softDeleteInternal()
     {
@@ -209,7 +212,7 @@ class SoftDeleteBehavior extends Behavior
                 }
                 $attributes[$attribute] = $value;
             }
-            $result = $this->owner->updateAttributes($attributes);
+            $result = $this->updateAttributes($attributes);
             $this->afterSoftDelete();
         }
 
@@ -265,6 +268,7 @@ class SoftDeleteBehavior extends Behavior
     /**
      * Restores record from "deleted" state, after it has been "soft" deleted.
      * @return int|false the number of restored rows, or false if the restoration is unsuccessful for some reason.
+     * @throws StaleObjectException if optimistic locking is enabled and the data being updated is outdated.
      * @throws \Throwable in case restore failed in transactional mode.
      */
     public function restore()
@@ -305,6 +309,7 @@ class SoftDeleteBehavior extends Behavior
      * Performs restoration for soft-deleted record.
      * @return int the number of restored rows.
      * @throws InvalidConfigException on invalid configuration.
+     * @throws StaleObjectException if optimistic locking is enabled and the data being updated is outdated.
      */
     protected function restoreInternal()
     {
@@ -339,7 +344,7 @@ class SoftDeleteBehavior extends Behavior
             $attributes[$attribute] = $value;
         }
 
-        return $this->owner->updateAttributes($attributes);
+        return $this->updateAttributes($attributes);
     }
 
     /**
@@ -414,6 +419,7 @@ class SoftDeleteBehavior extends Behavior
     /**
      * Returns a value indicating whether the specified operation is transactional in the current owner scenario.
      * @return bool whether the specified operation is transactional in the current owner scenario.
+     * @since 1.0.2
      */
     private function isTransactional($operation)
     {
@@ -435,6 +441,40 @@ class SoftDeleteBehavior extends Behavior
             return $db->beginTransaction();
         }
         return null;
+    }
+
+    /**
+     * Updates owner attributes taking [[BaseActiveRecord::optimisticLock()]] into account.
+     * @param array $attributes the owner attributes (names or name-value pairs) to be updated
+     * @return int the number of rows affected.
+     * @throws StaleObjectException if optimistic locking is enabled and the data being updated is outdated.
+     * @since 1.0.2
+     */
+    private function updateAttributes(array $attributes)
+    {
+        $owner = $this->owner;
+
+        $lock = $owner->optimisticLock();
+        if ($lock === null) {
+            return $owner->updateAttributes($attributes);
+        }
+
+        $condition = $owner->getOldPrimaryKey(true);
+
+        $attributes[$lock] = $owner->{$lock} + 1;
+        $condition[$lock] = $owner->{$lock};
+
+        $rows = $owner->updateAll($attributes, $condition);
+        if (!$rows) {
+            throw new StaleObjectException('The object being updated is outdated.');
+        }
+
+        foreach ($attributes as $name => $value) {
+            $owner->{$name} = $value;
+            $owner->setOldAttribute($name, $value);
+        }
+
+        return $rows;
     }
 
     // Events :

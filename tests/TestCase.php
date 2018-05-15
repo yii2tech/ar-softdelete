@@ -75,6 +75,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
             'name' => 'string',
             'isDeleted' => 'boolean DEFAULT 0',
             'deletedAt' => 'integer',
+            'version' => 'integer',
         ];
         $db->createCommand()->createTable($table, $columns)->execute();
 
