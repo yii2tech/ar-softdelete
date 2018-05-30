@@ -386,10 +386,10 @@ try {
 
 Alternatively you can use [[\yii\db\ActiveRecord::transactions()]] method to specify the list of operations, which should be performed inside the transaction block.
 Method [[\yii2tech\ar\softdelete\SoftDeleteBehavior::softDelete()]] responds both to [[\yii\db\ActiveRecord::OP_UPDATE]] and [[\yii\db\ActiveRecord::OP_DELETE]].
-In case current model scenario includes at least of those constants soft-delete will be performed inside transaction block.
+In case current model scenario includes at least of those constants, soft-delete will be performed inside the transaction block.
 
 > Note: method [[\yii2tech\ar\softdelete\SoftDeleteBehavior::safeDelete()]] uses its own internal transaction logic, which may
-  conflict with automatic transactional operations. Make sure you do not run this method with the scenario, which is affected by
+  conflict with automatic transactional operations. Make sure you do not run this method in the scenario, which is affected by
   [[\yii\db\ActiveRecord::transactions()]].
 
 
