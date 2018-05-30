@@ -45,6 +45,9 @@ This extension provides [[\yii2tech\ar\softdelete\SoftDeleteBehavior]] ActiveRec
 support in Yii2. You may attach it to your model class in the following way:
 
 ```php
+use yii\db\ActiveRecord;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+
 class Item extends ActiveRecord
 {
     public function behaviors()
@@ -87,6 +90,9 @@ existing code. For such functionality you should enable [[\yii2tech\ar\softdelet
 option in behavior configuration:
 
 ```php
+use yii\db\ActiveRecord;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+
 class Item extends ActiveRecord
 {
     public function behaviors()
@@ -120,6 +126,9 @@ transactions feature, e.g. scenarios with [[\yii\db\ActiveRecord::OP_DELETE]] or
 transaction levels:
 
 ```php
+use yii\db\ActiveRecord;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+
 class Item extends ActiveRecord
 {
     public function behaviors()
@@ -149,6 +158,9 @@ $item->delete(); // nothing happens!
   `find()` method. Also remember, you may reset such default scope using `where()` method with empty condition.
 
 ```php
+use yii\db\ActiveRecord;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+
 class Item extends ActiveRecord
 {
     public function behaviors()
@@ -187,6 +199,9 @@ You can make "soft" deletion to be "smart" and detect, if the record can be remo
 This can be done via [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$allowDeleteCallback]]. For example:
 
 ```php
+use yii\db\ActiveRecord;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+
 class User extends ActiveRecord
 {
     public function behaviors()
@@ -301,6 +316,7 @@ By default [[\yii2tech\ar\softdelete\SoftDeleteBehavior::softDelete()]] triggers
 and [[\yii\db\BaseActiveRecord::EVENT_AFTER_DELETE]] events in the same way they are triggered at regular `delete()`.
 
 Also [[\yii2tech\ar\softdelete\SoftDeleteBehavior]] triggers several additional events in the scope of the owner ActiveRecord:
+
  - [[\yii2tech\ar\softdelete\SoftDeleteBehavior::EVENT_BEFORE_SOFT_DELETE]] - triggered before "soft" delete is made.
  - [[\yii2tech\ar\softdelete\SoftDeleteBehavior::EVENT_AFTER_SOFT_DELETE]] - triggered after "soft" delete is made.
  - [[\yii2tech\ar\softdelete\SoftDeleteBehavior::EVENT_BEFORE_RESTORE]] - triggered before record is restored from "deleted" state.
@@ -318,6 +334,9 @@ $item->on(SoftDeleteBehavior::EVENT_BEFORE_SOFT_DELETE, function($event) {
 You may also handle these events inside your ActiveRecord class by declaring the corresponding methods:
 
 ```php
+use yii\db\ActiveRecord;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+
 class Item extends ActiveRecord
 {
     public function behaviors()
@@ -340,5 +359,112 @@ class Item extends ActiveRecord
     {
         return $this->deletedAt > (time() - 3600); // allow restoration only for the records, being deleted during last hour
     }
+}
+```
+
+
+## Transactional operations <span id="transactional-operations"></span>
+
+You can explicitly enclose [[\yii2tech\ar\softdelete\SoftDeleteBehavior::softDelete()]] method call in a transactional block, like following:
+
+```php
+$item = Item::findOne($id);
+
+$transaction = $item->getDb()->beginTransaction();
+try {
+    $item->softDelete();
+    // ...other DB operations...
+    $transaction->commit();
+} catch (\Exception $e) { // PHP < 7.0
+    $transaction->rollBack();
+    throw $e;
+} catch (\Throwable $e) { // PHP >= 7.0
+    $transaction->rollBack();
+    throw $e;
+}
+```
+
+Alternatively you can use [[\yii\db\ActiveRecord::transactions()]] method to specify the list of operations, which should be performed inside the transaction block.
+Method [[\yii2tech\ar\softdelete\SoftDeleteBehavior::softDelete()]] responds both to [[\yii\db\ActiveRecord::OP_UPDATE]] and [[\yii\db\ActiveRecord::OP_DELETE]].
+In case current model scenario includes at least of those constants soft-delete will be performed inside transaction block.
+
+> Note: method [[\yii2tech\ar\softdelete\SoftDeleteBehavior::safeDelete()]] uses its own internal transaction logic, which may
+  conflict with automatic transactional operations. Make sure you do not run this method with the scenario, which is affected by
+  [[\yii\db\ActiveRecord::transactions()]].
+
+
+## Optimistic locks <span id="optimistic-locks"></span>
+
+Soft-delete supports optimistic lock in the same way as regular [[\yii\db\ActiveRecord::save()]] method.
+In case you have specified version attribute via [[\yii\db\ActiveRecord::optimisticLock()]], [[\yii2tech\ar\softdelete\SoftDeleteBehavior::softDelete()]]
+will throw [[\yii\db\StaleObjectException]] exception in case of version number outdated.
+For example, in case you ActiveRecord is defined as following:
+
+```php
+use yii\db\ActiveRecord;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+
+class Item extends ActiveRecord
+{
+    /**
+     * {@inheritdoc}
+     */
+    public function behaviors()
+    {
+        return [
+            'softDelete' => [
+                'class' => SoftDeleteBehavior::className(),
+                'softDeleteAttributeValues' => [
+                    'isDeleted' => true
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function optimisticLock()
+    {
+        return 'version';
+    }
+}
+```
+
+You can create delete link in following way:
+
+```php
+<?php
+use yii\helpers\Html;
+
+/* @var $model Item */
+?>
+...
+<?= Html::a('delete', ['delete', 'id' => $model->id, 'version' => $model->version], ['data-method' => 'post']) ?>
+...
+```
+
+Then you can catch [[\yii\db\StaleObjectException]] exception inside controller action code to resolve the conflict:
+
+```php
+use yii\db\StaleObjectException;
+use yii\web\Controller;
+
+class ItemController extends Controller
+{
+    public function delete($id, $version)
+    {
+        $model = $this->findModel($id);
+        $model->version = $version;
+        
+        try {
+            $model->softDelete();
+            return $this->redirect(['index']);
+        } catch (StaleObjectException $e) {
+            // logic to resolve the conflict
+        }
+    }
+    
+    // ...
 }
 ```
