@@ -69,21 +69,35 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
         // Structure :
 
-        $table = 'Item';
-        $columns = [
-            'id' => 'pk',
-            'name' => 'string',
-            'isDeleted' => 'boolean DEFAULT 0',
-            'deletedAt' => 'integer',
-            'version' => 'integer',
-        ];
-        $db->createCommand()->createTable($table, $columns)->execute();
+        $db->createCommand()
+            ->createTable('Category', [
+                'id' => 'pk',
+                'name' => 'string',
+                'isDeleted' => 'boolean DEFAULT 0',
+            ])
+            ->execute();
+
+        $db->createCommand()
+            ->createTable('Item', [
+                'id' => 'pk',
+                'categoryId' => 'integer',
+                'name' => 'string',
+                'isDeleted' => 'boolean DEFAULT 0',
+                'deletedAt' => 'integer',
+                'version' => 'integer',
+            ])
+            ->execute();
 
         // Data :
+        $categoryIds = [
+            $db->getSchema()->insert('Category', ['name' => 'category1'])['id'],
+            $db->getSchema()->insert('Category', ['name' => 'category2'])['id'],
+            $db->getSchema()->insert('Category', ['name' => 'category3'])['id'],
+        ];
 
-        $db->createCommand()->batchInsert('Item', ['name'], [
-            ['item1'],
-            ['item2'],
+        $db->createCommand()->batchInsert('Item', ['name', 'categoryId'], [
+            ['item1', $categoryIds[0]],
+            ['item2', $categoryIds[1]],
         ])->execute();
     }
 }

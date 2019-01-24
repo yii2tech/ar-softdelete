@@ -7,10 +7,13 @@ use yii2tech\ar\softdelete\SoftDeleteBehavior;
 
 /**
  * @property int $id
+ * @property int $categoryId
  * @property string $name
  * @property bool $isDeleted
  * @property int $deletedAt
  * @property int $version
+ *
+ * @property Category $category
  */
 class Item extends ActiveRecord
 {
@@ -57,6 +60,7 @@ class Item extends ActiveRecord
     {
         return [
             ['name', 'required'],
+            ['categoryId', 'numeric'],
         ];
     }
 
@@ -71,5 +75,10 @@ class Item extends ActiveRecord
             throw $exception;
         }
         return parent::beforeDelete();
+    }
+
+    public function getCategory()
+    {
+        return $this->hasOne(Category::className(), ['id' => 'categoryId']);
     }
 }
