@@ -8,6 +8,7 @@
 namespace yii2tech\ar\softdelete;
 
 use yii\base\Behavior;
+use yii\base\InvalidConfigException;
 
 /**
  * SoftDeleteQueryBehavior
@@ -149,18 +150,41 @@ class SoftDeleteQueryBehavior extends Behavior
      * Generates default filter condition for not 'deleted' records.
      * @see notDeletedCondition
      * @return array filter condition.
+     * @throws InvalidConfigException on invalid configuration.
      */
     protected function defaultNotDeletedCondition()
     {
         $modelInstance = $this->getModelInstance();
 
         $condition = [];
-        foreach ($modelInstance->softDeleteAttributeValues as $attribute => $value) {
-            if (!is_scalar($value) && is_callable($value)) {
-                $condition[$attribute] = null;
-                continue;
+
+        if ($modelInstance->restoreAttributeValues === null) {
+            foreach ($modelInstance->softDeleteAttributeValues as $attribute => $value) {
+                if (is_bool($value)) {
+                    $restoreValue = !$value;
+                } elseif (is_int($value)) {
+                    if ($value === 1) {
+                        $restoreValue = 0;
+                    } elseif ($value === 0) {
+                        $restoreValue = 1;
+                    } else {
+                        $restoreValue = $value + 1;
+                    }
+                } elseif (!is_scalar($value) && is_callable($value)) {
+                    $restoreValue = null;
+                } else {
+                    throw new InvalidConfigException('Unable to automatically determine not delete condition, "' . get_class($this) . '::$notDeletedCondition" should be explicitly set.');
+                }
+
+                $condition[$attribute] = $restoreValue;
             }
-            $condition[$attribute] = !$value;
+        } else {
+            foreach ($modelInstance->restoreAttributeValues as $attribute => $value) {
+                if (!is_scalar($value) && is_callable($value)) {
+                    $value = call_user_func($value, $modelInstance);
+                }
+                $condition[$attribute] = $value;
+            }
         }
 
         return $condition;
