@@ -1,7 +1,7 @@
 Yii 2 ActiveRecord Soft Delete extension Change Log
 ===================================================
 
-1.0.3 under development
+1.0.3, January 25, 2019
 -----------------------
 
 - Enh: Created `SoftDeleteQueryBehavior` allowing records filtering using "soft delete" criteria (klimov-paul)
