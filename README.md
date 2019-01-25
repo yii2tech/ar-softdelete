@@ -84,7 +84,7 @@ $item = Item::findOne($id);
 var_dump($item); // outputs "null"
 ```
 
-However you may want to mutate regular ActiveRecord `delete()` method in the way in performs "soft" deleting instead
+However, you may want to mutate regular ActiveRecord `delete()` method in the way it performs "soft" deleting instead
 of actual removing of the record. It is a common solution in such cases as applying "soft" delete functionality for
 existing code. For such functionality you should enable [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$replaceRegularDelete]]
 option in behavior configuration:
@@ -154,12 +154,188 @@ $item->setScenario('some');
 $item->delete(); // nothing happens!
 ```
 
-> Tip: you may apply a condition, which filters "not deleted" records, to the ActiveQuery as default scope, overriding
-  `find()` method. Also remember, you may reset such default scope using `where()` method with empty condition.
+
+## Querying "soft" deleted records <span id="querying-soft-deleted-records"></span>
+
+Obviously, in order to find only "deleted" or only "active" records you should add corresponding condition to your search query:
+
+```php
+// returns only not "deleted" records
+$notDeletedItems = Item::find()
+    ->where(['isDeleted' => false])
+    ->all();
+
+// returns "deleted" records
+$deletedItems = Item::find()
+    ->where(['isDeleted' => true])
+    ->all();
+```
+
+However, you can use [[yii2tech\ar\softdelete\SoftDeleteQueryBehavior]] to facilitate composition of such queries.
+The easiest way to apply this behavior is its manual attachment to the query instance at [[\yii\db\BaseActiveRecord::find()]]
+method. For example:
 
 ```php
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
+use yii2tech\ar\softdelete\SoftDeleteQueryBehavior;
+
+class Item extend ActiveRecord
+{
+    // ...
+    public function behaviors()
+    {
+        return [
+            'softDeleteBehavior' => [
+                'class' => SoftDeleteBehavior::className(),
+                // ...
+            ],
+        ];
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery|SoftDeleteQueryBehavior
+     */
+    public static function find()
+    {
+        $query = parent::find();
+        $query->attachBehavior('softDelete', SoftDeleteQueryBehavior::className());
+        return $query;
+    }
+}
+```
+
+In case you already define custom query class for your active record, you can move behavior attachment there.
+For example:
+
+```php
+use yii\db\ActiveRecord;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+use yii2tech\ar\softdelete\SoftDeleteQueryBehavior;
+
+class Item extend ActiveRecord
+{
+    // ...
+    public function behaviors()
+    {
+        return [
+            'softDeleteBehavior' => [
+                'class' => SoftDeleteBehavior::className(),
+                // ...
+            ],
+        ];
+    }
+
+    /**
+     * @return ItemQuery|SoftDeleteQueryBehavior
+     */
+    public static function find()
+    {
+        return new ItemQuery(get_called_class());
+    }
+}
+
+class ItemQuery extends \yii\db\ActiveQuery
+{
+    public function behaviors()
+    {
+        return [
+            'softDelete' => [
+                'class' => SoftDeleteQueryBehavior::className(),
+            ],
+        ];
+    }
+}
+```
+
+Once being attached [[yii2tech\ar\softdelete\SoftDeleteQueryBehavior]] provides named scopes for the records filtering using
+"soft" deleted criteria. For example:
+
+```php
+// Find all "deleted" records:
+$deletedItems = Item::find()->deleted()->all();
+
+// Find all "active" records:
+$notDeletedItems = Item::find()->notDeleted()->all();
+
+// find all comments for not "deleted" items:
+$comments = Comment::find()
+    ->innerJoinWith(['item' => function ($query) {
+        $query->notDeleted();
+    }])
+    ->all();
+```
+
+You may easily create listing filter for "deleted" records using `filterDeleted()` method:
+
+```php
+// Filter records by "soft" deleted criteria:
+$items = Item::find()
+    ->filterDeleted(Yii::$app->request->get('filter_deleted'))
+    ->all();
+```
+
+This method applies `notDeleted()` scope on empty filter value, `deleted()` - on positive filter value, and no scope (e.g.
+show both "deleted" and "active" records) on negative (zero) value.
+
+> Note: [[yii2tech\ar\softdelete\SoftDeleteQueryBehavior]] has been designed to properly handle joins and avoid ambiguous
+  column errors, however, there still can be cases, which it will be unable to handle properly. Be prepared to specify
+  "soft deleted" conditions manually in case you are writing complex query, involving several tables with "soft delete" feature.
+
+By default [[yii2tech\ar\softdelete\SoftDeleteQueryBehavior]] composes filter criteria for its scopes using the information from
+[[yii2tech\ar\softdelete\SoftDeleteBehavior::$softDeleteAttributeValues]]. Thus you may need to manually configure filter conditions
+in case you are using sophisticated logic for "soft" deleted records marking. For example:
+
+```php
+use yii\db\ActiveRecord;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+use yii2tech\ar\softdelete\SoftDeleteQueryBehavior;
+
+class Item extend ActiveRecord
+{
+    // ...
+    public function behaviors()
+    {
+        return [
+            'softDeleteBehavior' => [
+                'class' => SoftDeleteBehavior::className(),
+                'softDeleteAttributeValues' => [
+                    'statusId' => 'deleted',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery|SoftDeleteQueryBehavior
+     */
+    public static function find()
+    {
+        $query = parent::find();
+        
+        $query->attachBehavior('softDelete', [
+            'class' => SoftDeleteQueryBehavior::className(),
+            'deletedCondition' => [
+                'statusId' => 'deleted',
+            ],
+            'notDeletedCondition' => [
+                'statusId' => 'active',
+            ],
+        ]);
+        
+        return $query;
+    }
+}
+```
+
+> Tip: you may apply a condition, which filters "not deleted" records, to the ActiveQuery as default scope, overriding
+  `find()` method. Also remember, you may reset such default scope using `onCondition()`  and `where()` methods
+  with empty condition.
+
+```php
+use yii\db\ActiveRecord;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+use yii2tech\ar\softdelete\SoftDeleteQueryBehavior;
 
 class Item extends ActiveRecord
 {
@@ -175,14 +351,28 @@ class Item extends ActiveRecord
         ];
     }
 
+    /**
+     * @return \yii\db\ActiveQuery|SoftDeleteQueryBehavior
+     */
     public static function find()
     {
-        return parent::find()->where(['isDeleted' => false]);
+        $query = parent::find();
+        
+        $query->attachBehavior('softDelete', SoftDeleteQueryBehavior::className());
+        
+        return $query->notDeleted();
     }
 }
 
 $notDeletedItems = Item::find()->all(); // returns only not "deleted" records
-$allItems = Item::find()->where([])->all(); // returns all records
+
+$allItems = Item::find()
+    ->onCondition([]) // resets "not deleted" scope for relational databases
+    ->all(); // returns all records
+
+$allItems = Item::find()
+    ->where([]) // resets "not deleted" scope for NOSQL databases
+    ->all(); // returns all records
 ```
 
 

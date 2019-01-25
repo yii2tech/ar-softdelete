@@ -76,8 +76,8 @@ use yii\base\InvalidConfigException;
  *     public function behaviors()
  *     {
  *         return [
- *             'collection' => [
- *                 'class' => SoftDeleteQueryBehavior::className()
+ *             'softDelete' => [
+ *                 'class' => SoftDeleteQueryBehavior::className(),
  *             ],
  *         ];
  *     }
