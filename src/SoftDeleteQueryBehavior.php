@@ -11,11 +11,97 @@ use yii\base\Behavior;
 use yii\base\InvalidConfigException;
 
 /**
- * SoftDeleteQueryBehavior
+ * SoftDeleteQueryBehavior provides support for querying "soft" deleted ActiveRecord models.
+ *
+ * This behavior should be attached to [[\yii\db\ActiveQueryInterface]] instance.
+ * In order to function properly [[SoftDeleteBehavior]] should be attached to the ActiveRecord class this query relates to.
+ *
+ * The easiest way to apply this behavior is its manual attachment to the query instance at [[\yii\db\BaseActiveRecord::find()]]
+ * method. For example:
+ *
+ * ```php
+ * use yii2tech\ar\softdelete\SoftDeleteBehavior;
+ * use yii2tech\ar\softdelete\SoftDeleteQueryBehavior;
+ *
+ * class Item extend \yii\db\ActiveRecord
+ * {
+ *     // ...
+ *     public function behaviors()
+ *     {
+ *         return [
+ *             'softDeleteBehavior' => [
+ *                 'class' => SoftDeleteBehavior::className(),
+ *                 // ...
+ *             ],
+ *         ];
+ *     }
+ *
+ *     public static function find()
+ *     {
+ *         $query = parent::find();
+ *         $query->attachBehavior('softDelete', SoftDeleteQueryBehavior::className());
+ *         return $query;
+ *     }
+ * }
+ * ```
+ *
+ * In case you already define custom query class for your active record, you can move behavior attachment there.
+ * For example:
+ *
+ * ```php
+ * use yii2tech\ar\softdelete\SoftDeleteBehavior;
+ * use yii2tech\ar\softdelete\SoftDeleteQueryBehavior;
+ *
+ * class Item extend \yii\db\ActiveRecord
+ * {
+ *     // ...
+ *     public function behaviors()
+ *     {
+ *         return [
+ *             'softDeleteBehavior' => [
+ *                 'class' => SoftDeleteBehavior::className(),
+ *                 // ...
+ *             ],
+ *         ];
+ *     }
+ *
+ *     public static function find()
+ *     {
+ *         return new ItemQuery(get_called_class());
+ *     }
+ * }
+ *
+ * class ItemQuery extends \yii\db\ActiveQuery
+ * {
+ *     public function behaviors()
+ *     {
+ *         return [
+ *             'collection' => [
+ *                 'class' => SoftDeleteQueryBehavior::className()
+ *             ],
+ *         ];
+ *     }
+ * }
+ * ```
+ *
+ * Basic usage example:
+ *
+ * ```php
+ * // Find all soft-deleted records:
+ * $deletedItems = Item::find()->deleted()->all();
+ *
+ * // Find all not soft-deleted records:
+ * $notDeletedItems = Item::find()->notDeleted()->all();
+ *
+ * // Filter records by soft-deleted criteria:
+ * $filteredItems = Item::find()->filterDeleted(Yii::$app->request->get('filter_deleted'))->all();
+ * ```
+ *
+ * @see SoftDeleteBehavior
  *
  * @property \yii\db\ActiveQueryInterface|\yii\db\ActiveQueryTrait $owner owner ActiveQuery instance.
- * @property array $deletedCondition filter condition for 'deleted' records.
- * @property array $notDeletedCondition filter condition for not 'deleted' records.
+ * @property array $deletedCondition filter condition for 'soft-deleted' records.
+ * @property array $notDeletedCondition filter condition for not 'soft-deleted' records.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
  * @since 1.0.3
@@ -23,16 +109,16 @@ use yii\base\InvalidConfigException;
 class SoftDeleteQueryBehavior extends Behavior
 {
     /**
-     * @var array filter condition for 'deleted' records.
+     * @var array filter condition for 'soft-deleted' records.
      */
     private $_deletedCondition;
     /**
-     * @var array filter condition for not 'deleted' records.
+     * @var array filter condition for not 'soft-deleted' records.
      */
     private $_notDeletedCondition;
 
     /**
-     * @return array
+     * @return array filter condition for 'soft-deleted' records.
      */
     public function getDeletedCondition()
     {
@@ -44,7 +130,7 @@ class SoftDeleteQueryBehavior extends Behavior
     }
 
     /**
-     * @param array $deletedCondition
+     * @param array $deletedCondition filter condition for 'soft-deleted' records.
      */
     public function setDeletedCondition($deletedCondition)
     {
@@ -52,7 +138,7 @@ class SoftDeleteQueryBehavior extends Behavior
     }
 
     /**
-     * @return array
+     * @return array filter condition for not 'soft-deleted' records.
      */
     public function getNotDeletedCondition()
     {
@@ -64,7 +150,7 @@ class SoftDeleteQueryBehavior extends Behavior
     }
 
     /**
-     * @param array $notDeletedCondition
+     * @param array $notDeletedCondition filter condition for not 'soft-deleted' records.
      */
     public function setNotDeletedCondition($notDeletedCondition)
     {

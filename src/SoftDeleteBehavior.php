@@ -35,6 +35,23 @@ use yii\db\StaleObjectException;
  * }
  * ```
  *
+ * Basic usage example:
+ *
+ * ```php
+ * $item = Item::findOne($id);
+ * $item->softDelete(); // mark record as "deleted"
+ *
+ * $item = Item::findOne($id);
+ * var_dump($item->isDeleted); // outputs "true"
+ *
+ * $item->restore(); // restores record from "deleted"
+ *
+ * $item = Item::findOne($id);
+ * var_dump($item->isDeleted); // outputs "false"
+ * ```
+ *
+ * @see SoftDeleteQueryBehavior
+ *
  * @property BaseActiveRecord $owner owner ActiveRecord instance.
  * @property bool $replaceRegularDelete whether to perform soft delete instead of regular delete.
  * If enabled [[BaseActiveRecord::delete()]] will perform soft deletion instead of actual record deleting.
