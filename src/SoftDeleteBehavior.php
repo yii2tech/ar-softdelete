@@ -501,12 +501,14 @@ class SoftDeleteBehavior extends Behavior
      */
     public function events()
     {
+        $events = [BaseActiveRecord::EVENT_BEFORE_INSERT => 'beforeInsert'];
+
         if ($this->getReplaceRegularDelete()) {
-            return [
+            return array_merge($events, [
                 BaseActiveRecord::EVENT_BEFORE_DELETE => 'beforeDelete',
-            ];
+            ]);
         }
-        return [];
+        return $events;
     }
 
     /**
@@ -520,4 +522,22 @@ class SoftDeleteBehavior extends Behavior
             $event->isValid = false;
         }
     }
+
+     /**
+     * Handles owner 'beforeInsert' owner event, applying restore values to new records.
+     * @param ModelEvent $event event instance.
+     */
+    public function beforeInsert()
+    {
+        if ($this->restoreAttributeValues) {
+            foreach ($this->restoreAttributeValues as $name => $value) {
+                if (!is_scalar($value) && is_callable($value)) {
+                    $value = call_user_func($value, $this->owner);
+                }
+                $this->owner->{$name} = $value;
+            }
+        }
+    }
+
+
 }

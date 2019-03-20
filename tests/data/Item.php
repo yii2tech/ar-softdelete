@@ -40,7 +40,7 @@ class Item extends ActiveRecord
                 ],
                 'allowDeleteCallback' => function ($model) {
                     return $model->name === 'allow-delete';
-                },
+                }
             ],
         ];
     }

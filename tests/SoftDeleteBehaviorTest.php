@@ -6,6 +6,7 @@ use yii\base\ModelEvent;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 use yii2tech\tests\unit\ar\softdelete\data\Item;
 use yii2tech\tests\unit\ar\softdelete\data\VersionedItem;
+use yii2tech\tests\unit\ar\softdelete\data\Category;
 
 class SoftDeleteBehaviorTest extends TestCase
 {
@@ -209,5 +210,17 @@ class SoftDeleteBehaviorTest extends TestCase
         $item->version = 0;
         $this->expectException('yii\db\StaleObjectException');
         $item->softDelete();
+    }
+
+    public function testBeforeInsert()
+    {
+        $category = new Category([
+            'name' => 'new category'
+        ]);
+
+        $category->save(false);
+        $category->refresh();
+
+        $this->assertFalse($category->isDeleted);
     }
 }
