@@ -72,4 +72,23 @@ class SoftDeleteQueryBehaviorTest extends TestCase
 
         $this->assertCount($expectedCount, Category::find()->filterDeleted($filterDeleted)->all());
     }
+
+    /**
+     * @depends testWhereDeleted
+     * @depends testJoin
+     */
+    public function testAlias()
+    {
+        Category::find()->limit(1)->one()->softDelete();
+
+        $this->assertCount(1, Category::find()->alias('t1')->deleted()->all());
+
+        $rows = Category::find()
+            ->alias('t1')
+            ->deleted()
+            ->leftJoin(Item::tableName() . ' t2', 't1.id=t2.categoryId')
+            ->all();
+
+        $this->assertCount(1, $rows);
+    }
 }
