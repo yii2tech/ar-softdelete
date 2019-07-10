@@ -1,3 +1,6 @@
+# use ubuntu trusty for old PHP versions
+dist: trusty
+
 language: php
 
 php:
