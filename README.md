@@ -10,8 +10,8 @@ This extension provides support for ActiveRecord soft delete.
 
 For license information check the [LICENSE](LICENSE.md)-file.
 
-[![Latest Stable Version](https://poser.pugx.org/yii2tech/ar-softdelete/v/stable.png)](https://packagist.org/packages/yii2tech/ar-softdelete)
-[![Total Downloads](https://poser.pugx.org/yii2tech/ar-softdelete/downloads.png)](https://packagist.org/packages/yii2tech/ar-softdelete)
+[![Latest Stable Version](https://img.shields.io/packagist/v/yii2tech/ar-softdelete.svg)](https://packagist.org/packages/yii2tech/ar-softdelete)
+[![Total Downloads](https://img.shields.io/packagist/dt/yii2tech/ar-softdelete.svg)](https://packagist.org/packages/yii2tech/ar-softdelete)
 [![Build Status](https://travis-ci.org/yii2tech/ar-softdelete.svg?branch=master)](https://travis-ci.org/yii2tech/ar-softdelete)
 
 

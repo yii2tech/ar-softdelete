@@ -44,7 +44,7 @@ class SoftDeleteQueryBehaviorTest extends TestCase
     }
 
     /**
-     * Data provider for [[testFilterDeleted()]]
+     * Data provider for {@see testFilterDeleted()}
      * @return array test data.
      */
     public function dataProviderFilterDeleted()

@@ -18,7 +18,7 @@ use yii2tech\ar\softdelete\SoftDeleteBehavior;
 class Item extends ActiveRecord
 {
     /**
-     * @var bool whether to throw [[onDeleteExceptionClass]] exception on [[delete()]]
+     * @var bool whether to throw {@see onDeleteExceptionClass} exception on {@see delete()}
      */
     public $throwOnDeleteException = false;
     /**

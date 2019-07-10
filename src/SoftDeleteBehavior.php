@@ -54,7 +54,7 @@ use yii\db\StaleObjectException;
  *
  * @property BaseActiveRecord $owner owner ActiveRecord instance.
  * @property bool $replaceRegularDelete whether to perform soft delete instead of regular delete.
- * If enabled [[BaseActiveRecord::delete()]] will perform soft deletion instead of actual record deleting.
+ * If enabled {@see BaseActiveRecord::delete()} will perform soft deletion instead of actual record deleting.
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
  * @since 1.0
@@ -63,7 +63,7 @@ class SoftDeleteBehavior extends Behavior
 {
     /**
      * @event ModelEvent an event that is triggered before deleting a record.
-     * You may set [[ModelEvent::isValid]] to be false to stop the deletion.
+     * You may set {@see ModelEvent::$isValid} to be false to stop the deletion.
      */
     const EVENT_BEFORE_SOFT_DELETE = 'beforeSoftDelete';
     /**
@@ -72,7 +72,7 @@ class SoftDeleteBehavior extends Behavior
     const EVENT_AFTER_SOFT_DELETE = 'afterSoftDelete';
     /**
      * @event ModelEvent an event that is triggered before record is restored from "deleted" state.
-     * You may set [[ModelEvent::isValid]] to be false to stop the restoration.
+     * You may set {@see ModelEvent::$isValid} to be false to stop the restoration.
      */
     const EVENT_BEFORE_RESTORE = 'beforeRestore';
     /**
@@ -105,12 +105,12 @@ class SoftDeleteBehavior extends Behavior
     ];
     /**
      * @var array|null  values of the owner attributes, which should be applied on restoration from "deleted" state,
-     * in format: `[attributeName => attributeValue]`. If not set value will be automatically detected from [[softDeleteAttributeValues]].
+     * in format: `[attributeName => attributeValue]`. If not set value will be automatically detected from {@see softDeleteAttributeValues}.
      */
     public $restoreAttributeValues;
     /**
-     * @var bool whether to invoke owner [[BaseActiveRecord::beforeDelete()]] and [[BaseActiveRecord::afterDelete()]]
-     * while performing soft delete. This option affects only [[softDelete()]] method.
+     * @var bool whether to invoke owner {@see BaseActiveRecord::beforeDelete()} and {@see BaseActiveRecord::afterDelete()}
+     * while performing soft delete. This option affects only {@see softDelete()} method.
      */
     public $invokeDeleteEvents = true;
     /**
@@ -126,10 +126,10 @@ class SoftDeleteBehavior extends Behavior
      */
     public $allowDeleteCallback;
     /**
-     * @var string class name of the exception, which should trigger a fallback to [[softDelete()]] method from [[safeDelete()]].
-     * By default [[\yii\db\IntegrityException]] is used, which means soft deleting will be performed on foreign constraint
+     * @var string class name of the exception, which should trigger a fallback to {@see softDelete()} method from {@see safeDelete()}.
+     * By default {@see \yii\db\IntegrityException} is used, which means soft deleting will be performed on foreign constraint
      * violation DB exception.
-     * You may specify another exception class here to customize fallback error level. For example: usage of [[\Exception]]
+     * You may specify another exception class here to customize fallback error level. For example: usage of {@see \Throwable}
      * will cause soft-delete fallback on any error during regular deleting.
      * @see safeDelete()
      */
@@ -137,7 +137,7 @@ class SoftDeleteBehavior extends Behavior
 
     /**
      * @var bool whether to perform soft delete instead of regular delete.
-     * If enabled [[BaseActiveRecord::delete()]] will perform soft deletion instead of actual record deleting.
+     * If enabled {@see BaseActiveRecord::delete()} will perform soft deletion instead of actual record deleting.
      */
     private $_replaceRegularDelete = false;
 
@@ -238,7 +238,7 @@ class SoftDeleteBehavior extends Behavior
 
     /**
      * This method is invoked before soft deleting a record.
-     * The default implementation raises the [[EVENT_BEFORE_SOFT_DELETE]] event.
+     * The default implementation raises the {@see EVENT_BEFORE_SOFT_DELETE} event.
      * @return bool whether the record should be deleted. Defaults to true.
      */
     public function beforeSoftDelete()
@@ -257,7 +257,7 @@ class SoftDeleteBehavior extends Behavior
 
     /**
      * This method is invoked after soft deleting a record.
-     * The default implementation raises the [[EVENT_AFTER_SOFT_DELETE]] event.
+     * The default implementation raises the {@see EVENT_AFTER_SOFT_DELETE} event.
      * You may override this method to do postprocessing after the record is deleted.
      * Make sure you call the parent implementation so that the event is raised properly.
      */
@@ -366,7 +366,7 @@ class SoftDeleteBehavior extends Behavior
 
     /**
      * This method is invoked before record is restored from "deleted" state.
-     * The default implementation raises the [[EVENT_BEFORE_RESTORE]] event.
+     * The default implementation raises the {@see EVENT_BEFORE_RESTORE} event.
      * @return bool whether the record should be restored. Defaults to `true`.
      */
     public function beforeRestore()
@@ -385,7 +385,7 @@ class SoftDeleteBehavior extends Behavior
 
     /**
      * This method is invoked after record is restored from "deleted" state.
-     * The default implementation raises the [[EVENT_AFTER_RESTORE]] event.
+     * The default implementation raises the {@see EVENT_AFTER_RESTORE} event.
      * You may override this method to do postprocessing after the record is restored.
      * Make sure you call the parent implementation so that the event is raised properly.
      */
@@ -398,7 +398,7 @@ class SoftDeleteBehavior extends Behavior
     }
 
     /**
-     * Attempts to perform regular [[BaseActiveRecord::delete()]], if it fails with exception, falls back to [[softDelete()]].
+     * Attempts to perform regular {@see BaseActiveRecord::delete()}, if it fails with exception, falls back to {@see softDelete()}.
      * If owner database supports transactions, regular deleting attempt will be enclosed in transaction with rollback
      * in case of failure.
      * @return false|int number of affected rows.
@@ -461,7 +461,7 @@ class SoftDeleteBehavior extends Behavior
     }
 
     /**
-     * Updates owner attributes taking [[BaseActiveRecord::optimisticLock()]] into account.
+     * Updates owner attributes taking {@see BaseActiveRecord::optimisticLock()} into account.
      * @param array $attributes the owner attributes (names or name-value pairs) to be updated
      * @return int the number of rows affected.
      * @throws StaleObjectException if optimistic locking is enabled and the data being updated is outdated.

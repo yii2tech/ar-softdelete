@@ -13,10 +13,10 @@ use yii\base\InvalidConfigException;
 /**
  * SoftDeleteQueryBehavior provides support for querying "soft" deleted ActiveRecord models.
  *
- * This behavior should be attached to [[\yii\db\ActiveQueryInterface]] instance.
- * In order to function properly [[SoftDeleteBehavior]] should be attached to the ActiveRecord class this query relates to.
+ * This behavior should be attached to {@see \yii\db\ActiveQueryInterface} instance.
+ * In order to function properly {@see SoftDeleteBehavior} should be attached to the ActiveRecord class this query relates to.
  *
- * The easiest way to apply this behavior is its manual attachment to the query instance at [[\yii\db\BaseActiveRecord::find()]]
+ * The easiest way to apply this behavior is its manual attachment to the query instance at {@see \yii\db\BaseActiveRecord::find()}
  * method. For example:
  *
  * ```php
