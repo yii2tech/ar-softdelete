@@ -4,6 +4,7 @@ namespace yii2tech\tests\unit\ar\softdelete;
 
 use yii\base\ModelEvent;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
+use yii2tech\tests\unit\ar\softdelete\data\Category;
 use yii2tech\tests\unit\ar\softdelete\data\Item;
 use yii2tech\tests\unit\ar\softdelete\data\VersionedItem;
 
@@ -209,5 +210,22 @@ class SoftDeleteBehaviorTest extends TestCase
         $item->version = 0;
         $this->expectException('yii\db\StaleObjectException');
         $item->softDelete();
+    }
+
+    /**
+     * @depends testRestore
+     */
+    public function testUseRestoreAttributeValuesAsDefaults()
+    {
+        $category = new Category();
+        $category->name = 'apply restore attribute';
+        $category->save(false);
+        $this->assertSame(false, $category->isDeleted);
+
+        $category = new Category();
+        $category->name = 'prevent restore attribute application';
+        $category->isDeleted = true;
+        $category->save(false);
+        $this->assertSame(true, $category->isDeleted);
     }
 }

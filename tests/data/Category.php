@@ -26,6 +26,7 @@ class Category extends ActiveRecord
                 'softDeleteAttributeValues' => [
                     'isDeleted' => true
                 ],
+                'useRestoreAttributeValuesAsDefaults' => true,
             ],
         ];
     }

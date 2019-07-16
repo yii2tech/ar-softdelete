@@ -73,7 +73,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
             ->createTable('Category', [
                 'id' => 'pk',
                 'name' => 'string',
-                'isDeleted' => 'boolean DEFAULT 0',
+                'isDeleted' => 'boolean',
             ])
             ->execute();
 
@@ -90,9 +90,9 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
         // Data :
         $categoryIds = [
-            $db->getSchema()->insert('Category', ['name' => 'category1'])['id'],
-            $db->getSchema()->insert('Category', ['name' => 'category2'])['id'],
-            $db->getSchema()->insert('Category', ['name' => 'category3'])['id'],
+            $db->getSchema()->insert('Category', ['name' => 'category1', 'isDeleted' => false])['id'],
+            $db->getSchema()->insert('Category', ['name' => 'category2', 'isDeleted' => false])['id'],
+            $db->getSchema()->insert('Category', ['name' => 'category3', 'isDeleted' => false])['id'],
         ];
 
         $db->createCommand()->batchInsert('Item', ['name', 'categoryId'], [
