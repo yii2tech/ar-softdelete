@@ -45,6 +45,8 @@ This extension provides [[\yii2tech\ar\softdelete\SoftDeleteBehavior]] ActiveRec
 support in Yii2. You may attach it to your model class in the following way:
 
 ```php
+<?php
+
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 
@@ -72,6 +74,8 @@ Usage of `softDelete()` is recommended, since it allows marking the record as "d
 method intact, which allows you to perform "hard" delete if necessary. For example:
 
 ```php
+<?php
+
 $id = 17;
 $item = Item::findOne($id);
 $item->softDelete(); // mark record as "deleted"
@@ -90,6 +94,8 @@ existing code. For such functionality you should enable [[\yii2tech\ar\softdelet
 option in behavior configuration:
 
 ```php
+<?php
+
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 
@@ -113,6 +119,8 @@ class Item extends ActiveRecord
 Now invocation of the `delete()` method will mark record as "deleted" instead of removing it:
 
 ```php
+<?php
+
 $id = 17;
 $item = Item::findOne($id);
 $item->delete(); // no record removal, mark record as "deleted" instead
@@ -126,6 +134,8 @@ transactions feature, e.g. scenarios with [[\yii\db\ActiveRecord::OP_DELETE]] or
 transaction levels:
 
 ```php
+<?php
+
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 
@@ -160,6 +170,8 @@ $item->delete(); // nothing happens!
 Obviously, in order to find only "deleted" or only "active" records you should add corresponding condition to your search query:
 
 ```php
+<?php
+
 // returns only not "deleted" records
 $notDeletedItems = Item::find()
     ->where(['isDeleted' => false])
@@ -176,11 +188,13 @@ The easiest way to apply this behavior is its manual attachment to the query ins
 method. For example:
 
 ```php
+<?php
+
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 use yii2tech\ar\softdelete\SoftDeleteQueryBehavior;
 
-class Item extend ActiveRecord
+class Item extends ActiveRecord
 {
     // ...
     public function behaviors()
@@ -209,11 +223,13 @@ In case you already define custom query class for your active record, you can mo
 For example:
 
 ```php
+<?php
+
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 use yii2tech\ar\softdelete\SoftDeleteQueryBehavior;
 
-class Item extend ActiveRecord
+class Item extends ActiveRecord
 {
     // ...
     public function behaviors()
@@ -252,6 +268,8 @@ Once being attached [[yii2tech\ar\softdelete\SoftDeleteQueryBehavior]] provides 
 "soft" deleted criteria. For example:
 
 ```php
+<?php
+
 // Find all "deleted" records:
 $deletedItems = Item::find()->deleted()->all();
 
@@ -269,6 +287,8 @@ $comments = Comment::find()
 You may easily create listing filter for "deleted" records using `filterDeleted()` method:
 
 ```php
+<?php
+
 // Filter records by "soft" deleted criteria:
 $items = Item::find()
     ->filterDeleted(Yii::$app->request->get('filter_deleted'))
@@ -287,11 +307,13 @@ By default [[yii2tech\ar\softdelete\SoftDeleteQueryBehavior]] composes filter cr
 in case you are using sophisticated logic for "soft" deleted records marking. For example:
 
 ```php
+<?php
+
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 use yii2tech\ar\softdelete\SoftDeleteQueryBehavior;
 
-class Item extend ActiveRecord
+class Item extends ActiveRecord
 {
     // ...
     public function behaviors()
@@ -329,10 +351,12 @@ class Item extend ActiveRecord
 ```
 
 > Tip: you may apply a condition, which filters "not deleted" records, to the ActiveQuery as default scope, overriding
-  `find()` method. Also remember, you may reset such default scope using `onCondition()`  and `where()` methods
+  `find()` method. Also remember, that you may reset such default scope using `onCondition()`  and `where()` methods
   with empty condition.
 
 ```php
+<?php
+
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 use yii2tech\ar\softdelete\SoftDeleteQueryBehavior;
@@ -378,17 +402,19 @@ $allItems = Item::find()
 
 ## Smart deletion <span id="smart-deletion"></span>
 
-Usually "soft" deleting feature is used to prevent the database history loss ensuring data, which been in use and
+Usually "soft" deleting feature is used to prevent the database history loss, ensuring data, which been in use and
 perhaps have a references or dependencies, is kept in the system. However sometimes actual deleting is allowed for
 such data as well.
 For example: usually user account records should not be deleted but only marked as "inactive", however if you browse
 through users list and found accounts, which has been registered long ago, but don't have at least single log-in in the
 system, these records have no value for the history and can be removed from database to save disk space.
 
-You can make "soft" deletion to be "smart" and detect, if the record can be removed from database or only marked as "deleted".
+You can make "soft" deletion to be "smart" and detect, if the record can be removed from the database or only marked as "deleted".
 This can be done via [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$allowDeleteCallback]]. For example:
 
 ```php
+<?php
+ 
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 
@@ -451,7 +477,7 @@ CREATE TABLE `Purchase`
 ```
 
 Thus, while set up a foreign key from 'purchase' to 'user', 'ON DELETE RESTRICT' mode is used. So on attempt to delete
-a user record, which have at least one purchase a database error will occur. However, if user record have no external
+a user record, which have at least one purchase, a database error will occur. However, if user record have no external
 reference, it can be deleted.
 
 Usage of [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$allowDeleteCallback]] for such use case is not very practical.
@@ -462,6 +488,8 @@ Method [\yii2tech\ar\softdelete\SoftDeleteBehavior::safeDelete()]] attempts to i
 method, and, if it fails with exception, falls back to [[yii2tech\ar\softdelete\SoftDeleteBehavior::softDelete()]].
 
 ```php
+<?php
+
 // if there is a foreign key reference :
 $customer = Customer::findOne(15);
 var_dump(count($customer->purchases)); // outputs; "1"
@@ -478,7 +506,7 @@ var_dump($customer); // outputs: "null"
 
 By default `safeDelete()` method catches [[\yii\db\IntegrityException]] exception, which means soft deleting will be
 performed on foreign constraint violation DB exception. You may specify another exception class here to customize fallback
-error level. For example: usage of [[\Exception]] will cause soft-delete fallback on any error during regular deleting.
+error level. For example: usage of [[\Throwable]] will cause soft-delete fallback on any error during regular deleting.
 
 
 ## Record restoration <span id="record-restoration"></span>
@@ -487,6 +515,8 @@ At some point you may want to "restore" records, which have been marked as "dele
 You may use `restore()` method for this:
 
 ```php
+<?php
+
 $id = 17;
 $item = Item::findOne($id);
 $item->softDelete(); // mark record as "deleted"
@@ -498,6 +528,9 @@ var_dump($item->isDeleted); // outputs "false"
 
 By default attribute values, which should be applied for record restoration are automatically detected from [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$softDeleteAttributeValues]],
 however it is better you specify them explicitly via [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$restoreAttributeValues]].
+
+> Tip: if you enable [[\yii2tech\ar\softdelete\SoftDeleteBehavior::$useRestoreAttributeValuesAsDefaults]], attribute values,
+  which marks restored record, will be automatically applied at new record insertion.
 
 
 ## Events <span id="events"></span>
@@ -515,6 +548,8 @@ Also [[\yii2tech\ar\softdelete\SoftDeleteBehavior]] triggers several additional 
 You may attach the event handlers for these events to your ActiveRecord object:
 
 ```php
+<?php
+
 $item = Item::findOne($id);
 $item->on(SoftDeleteBehavior::EVENT_BEFORE_SOFT_DELETE, function($event) {
     $event->isValid = false; // prevent "soft" delete to be performed
@@ -524,6 +559,8 @@ $item->on(SoftDeleteBehavior::EVENT_BEFORE_SOFT_DELETE, function($event) {
 You may also handle these events inside your ActiveRecord class by declaring the corresponding methods:
 
 ```php
+<?php
+
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 
@@ -558,6 +595,8 @@ class Item extends ActiveRecord
 You can explicitly enclose [[\yii2tech\ar\softdelete\SoftDeleteBehavior::softDelete()]] method call in a transactional block, like following:
 
 ```php
+<?php
+
 $item = Item::findOne($id);
 
 $transaction = $item->getDb()->beginTransaction();
@@ -591,6 +630,8 @@ will throw [[\yii\db\StaleObjectException]] exception in case of version number 
 For example, in case you ActiveRecord is defined as following:
 
 ```php
+<?php
+
 use yii\db\ActiveRecord;
 use yii2tech\ar\softdelete\SoftDeleteBehavior;
 
@@ -637,6 +678,8 @@ use yii\helpers\Html;
 Then you can catch [[\yii\db\StaleObjectException]] exception inside controller action code to resolve the conflict:
 
 ```php
+<?php
+
 use yii\db\StaleObjectException;
 use yii\web\Controller;
 
