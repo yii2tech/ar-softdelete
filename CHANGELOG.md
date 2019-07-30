@@ -1,8 +1,8 @@
 Yii 2 ActiveRecord Soft Delete extension Change Log
 ===================================================
 
-1.0.4 under development
------------------------
+1.0.4, July 30, 2019
+--------------------
 
 - Enh #18: Added `SoftDeleteBehavior::$useRestoreAttributeValuesAsDefaults` allowing set default soft-delete attribute values on record insertion (leandrogehlen, klimov-paul)
 
